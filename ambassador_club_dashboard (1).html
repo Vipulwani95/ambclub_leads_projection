@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambassador Club - Lead Calling Dashboard (Oct - May)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-card h3 {
+            color: #888;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .metric-card .value {
+            color: #667eea;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .metric-card .subtext {
+            color: #28a745;
+            font-size: 0.9em;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .chart-container h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+        
+        .city-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .city-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .city-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .city-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .projection {
+            color: #28a745;
+            font-style: italic;
+        }
+        
+        .conversion-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .conversion-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .conversion-table th,
+        .conversion-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .conversion-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .conversion-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Ambassador Club - Lead Calling Dashboard</h1>
+            <p>City-wise Lead Projections & Conversion Targets (October 2024 - May 2025)</p>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total Workable Leads (Oct-Jan)</h3>
+                <div class="value" id="totalActual">213,607</div>
+                <div class="subtext">Actual Data</div>
+            </div>
+            <div class="metric-card">
+                <h3>Projected Till May</h3>
+                <div class="value" id="totalProjected">-</div>
+                <div class="subtext" id="totalGrowth">Calculating...</div>
+            </div>
+            <div class="metric-card">
+                <h3>Avg Monthly Growth Rate</h3>
+                <div class="value" id="avgGrowth">-</div>
+                <div class="subtext">Oct-Jan Average</div>
+            </div>
+            <div class="metric-card">
+                <h3>May Workable Leads</h3>
+                <div class="value" id="mayLeads">-</div>
+                <div class="subtext">Projected Target</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>📈 Month-on-Month Workable Leads Trend (All Cities)</h2>
+            <div class="chart-wrapper">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>📊 Month-on-Month Growth % Analysis</h2>
+            <div class="chart-wrapper">
+                <canvas id="growthRateChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="conversion-section">
+            <h2>📈 Workable Leads Growth Analysis</h2>
+            <table class="conversion-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Workable Leads</th>
+                        <th>Growth from Previous Month</th>
+                        <th>Growth %</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="growthTableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="chart-container">
+            <h2>🏙️ City-wise Workable Leads Distribution</h2>
+            <div class="chart-wrapper">
+                <canvas id="cityComparisonChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="conversion-section">
+            <h2>🎯 Conversion Targets & Projections</h2>
+            <table class="conversion-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Nov</th>
+                        <th>Dec</th>
+                        <th>Jan</th>
+                        <th>Feb</th>
+                        <th>March</th>
+                        <th>April</th>
+                        <th>May</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Unique Conversions</strong></td>
+                        <td>5,886</td>
+                        <td>6,769</td>
+                        <td>7,784</td>
+                        <td>8,951</td>
+                        <td>10,742</td>
+                        <td>12,891</td>
+                        <td class="highlight">15,469</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Overall Properties</strong></td>
+                        <td>7,139</td>
+                        <td>8,210</td>
+                        <td>9,441</td>
+                        <td>10,857</td>
+                        <td>13,029</td>
+                        <td>16,371</td>
+                        <td class="highlight">19,645</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Leads</strong></td>
+                        <td>112,464</td>
+                        <td>129,334</td>
+                        <td>148,734</td>
+                        <td>171,044</td>
+                        <td>205,253</td>
+                        <td>187,835</td>
+                        <td class="highlight">206,618</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Workable Leads</strong></td>
+                        <td>52,337</td>
+                        <td>57,136</td>
+                        <td>64,838</td>
+                        <td>74,564</td>
+                        <td>89,477</td>
+                        <td>86,299</td>
+                        <td class="highlight">94,929</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <h2 style="color: white; margin: 30px 0 20px 0; text-align: center; font-size: 2em;">📍 City-wise Breakdown</h2>
+        
+        <div class="city-grid" id="cityCards"></div>
+        
+        <div class="chart-container">
+            <h2>🎯 Workable Leads Growth Trajectory by City</h2>
+            <div class="chart-wrapper">
+                <canvas id="cityTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // City-wise data (October to January - Actual from your spreadsheet)
+        const cityData = {
+            'MUMBAI': [5910, 7137, 7626, 9488],
+            'PUNE': [7380, 7116, 7687, 8378],
+            'CHENNAI': [3328, 7751, 6014, 8140],
+            'HYDERABAD': [4350, 5268, 6159, 7212],
+            'BANGALORE': [4828, 4371, 5856, 6559],
+            'DELHI': [2984, 3981, 5064, 5991],
+            'FARIDABAD': [1343, 5833, 6153, 5937],
+            'GURGAON': [3571, 1742, 3216, 5835],
+            'NOIDA': [1983, 3745, 4499, 3341],
+            'GREATER_NOIDA': [2705, 4250, 3847, 2589],
+            'GHAZIABAD': [923, 1134, 1015, 1368]
+        };
+        
+        const months = ['October', 'November', 'December', 'January'];
+        const projectedMonths = ['February', 'March', 'April', 'May'];
+        const allMonths = [...months, ...projectedMonths];
+        
+        // Actual workable leads from your data
+        const actualWorkableLeads = [39305, 52328, 57136, 64838];
+        
+        // Calculate month-on-month growth rates
+        function calculateGrowthRate(current, previous) {
+            return ((current - previous) / previous) * 100;
+        }
+        
+        const growthRates = [];
+        for (let i = 1; i < actualWorkableLeads.length; i++) {
+            growthRates.push(calculateGrowthRate(actualWorkableLeads[i], actualWorkableLeads[i-1]));
+        }
+        
+        // Calculate average growth rate from Oct-Nov, Nov-Dec, Dec-Jan
+        const avgGrowthRate = growthRates.reduce((a, b) => a + b, 0) / growthRates.length;
+        
+        console.log('Growth Rates:', growthRates);
+        console.log('Oct-Nov:', growthRates[0].toFixed(2) + '%');
+        console.log('Nov-Dec:', growthRates[1].toFixed(2) + '%');
+        console.log('Dec-Jan:', growthRates[2].toFixed(2) + '%');
+        console.log('Average Growth Rate:', avgGrowthRate.toFixed(2) + '%');
+        
+        // Project future months using average growth rate
+        const projectedWorkableLeads = [...actualWorkableLeads];
+        let lastValue = actualWorkableLeads[actualWorkableLeads.length - 1];
+        
+        for (let i = 0; i < projectedMonths.length; i++) {
+            lastValue = Math.round(lastValue * (1 + avgGrowthRate / 100));
+            projectedWorkableLeads.push(lastValue);
+        }
+        
+        // Calculate projections for each city using the same average growth rate
+        function projectCityData(historicalData) {
+            const projected = [...historicalData];
+            let lastValue = historicalData[historicalData.length - 1];
+            
+            for (let i = 0; i < projectedMonths.length; i++) {
+                lastValue = Math.round(lastValue * (1 + avgGrowthRate / 100));
+                projected.push(lastValue);
+            }
+            return projected;
+        }
+        
+        const cityProjections = {};
+        for (const [city, data] of Object.entries(cityData)) {
+            cityProjections[city] = projectCityData(data);
+        }
+        
+        // Monthly totals should match our actual + projected workable leads
+        const monthlyTotals = projectedWorkableLeads;
+        
+        // Update metrics display
+        const totalProjected = projectedWorkableLeads.reduce((a, b) => a + b, 0);
+        const totalActual = actualWorkableLeads.reduce((a, b) => a + b, 0);
+        const overallGrowth = Math.round(((totalProjected - totalActual) / totalActual) * 100);
+        
+        document.getElementById('totalActual').textContent = totalActual.toLocaleString();
+        document.getElementById('totalProjected').textContent = totalProjected.toLocaleString();
+        document.getElementById('totalGrowth').textContent = `+${overallGrowth}% from Oct-Jan`;
+        document.getElementById('avgGrowth').textContent = avgGrowthRate.toFixed(1) + '%';
+        document.getElementById('mayLeads').textContent = projectedWorkableLeads[7].toLocaleString();
+        
+        // Populate growth table
+        const growthTableBody = document.getElementById('growthTableBody');
+        allMonths.forEach((month, idx) => {
+            const leads = projectedWorkableLeads[idx];
+            const isActual = idx < 4;
+            let growth = '-';
+            let growthPercent = '-';
+            
+            if (idx > 0) {
+                const prevLeads = projectedWorkableLeads[idx - 1];
+                growth = (leads - prevLeads).toLocaleString();
+                growthPercent = calculateGrowthRate(leads, prevLeads).toFixed(1) + '%';
+            }
+            
+            const row = document.createElement('tr');
+            if (!isActual) row.classList.add('highlight');
+            
+            row.innerHTML = `
+                <td><strong>${month}</strong></td>
+                <td>${leads.toLocaleString()}</td>
+                <td>${growth}</td>
+                <td>${growthPercent}</td>
+                <td>${isActual ? 'Actual' : 'Projected'}</td>
+            `;
+            growthTableBody.appendChild(row);
+        });
+        
+        // Chart 1: Monthly Trend
+        const ctx1 = document.getElementById('monthlyTrendChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: allMonths,
+                datasets: [{
+                    label: 'Total Workable Leads',
+                    data: monthlyTotals,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    segment: {
+                        borderDash: ctx => ctx.p0DataIndex >= 3 ? [5, 5] : undefined
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const status = context.dataIndex < 4 ? 'Actual' : 'Projected';
+                                return status + ' Workable Leads: ' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 2: Growth Rate Chart
+        const growthPercentages = [];
+        for (let i = 1; i < projectedWorkableLeads.length; i++) {
+            growthPercentages.push(calculateGrowthRate(projectedWorkableLeads[i], projectedWorkableLeads[i-1]));
+        }
+        
+        const ctx_growth = document.getElementById('growthRateChart').getContext('2d');
+        new Chart(ctx_growth, {
+            type: 'bar',
+            data: {
+                labels: allMonths.slice(1), // Remove October as it has no previous month
+                datasets: [{
+                    label: 'Month-on-Month Growth %',
+                    data: growthPercentages,
+                    backgroundColor: growthPercentages.map((val, idx) => 
+                        idx < 3 ? 'rgba(102, 126, 234, 0.8)' : 'rgba(118, 75, 162, 0.8)'
+                    ),
+                    borderColor: growthPercentages.map((val, idx) => 
+                        idx < 3 ? '#667eea' : '#764ba2'
+                    ),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const status = context.dataIndex < 3 ? 'Actual' : 'Projected';
+                                return status + ' Growth: ' + context.parsed.y.toFixed(1) + '%';
+                            },
+                            afterLabel: function(context) {
+                                const idx = context.dataIndex + 1;
+                                const current = projectedWorkableLeads[idx];
+                                const previous = projectedWorkableLeads[idx - 1];
+                                const increase = current - previous;
+                                return 'Increase: ' + increase.toLocaleString() + ' leads';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(1) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 3: City Comparison (Jan vs May)
+        const cities = Object.keys(cityData);
+        const janValues = cities.map(city => cityProjections[city][3]);
+        const mayValues = cities.map(city => cityProjections[city][7]);
+        
+        const ctx2 = document.getElementById('cityComparisonChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: cities,
+                datasets: [
+                    {
+                        label: 'January (Actual)',
+                        data: janValues,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: '#667eea',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'May (Projected)',
+                        data: mayValues,
+                        backgroundColor: 'rgba(118, 75, 162, 0.8)',
+                        borderColor: '#764ba2',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 4: City Trends Over Time
+        const colors = [
+            '#667eea', '#764ba2', '#f093fb', '#4facfe',
+            '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+            '#a8edea', '#fed6e3', '#c471f5'
+        ];
+        
+        const ctx3 = document.getElementById('cityTrendChart').getContext('2d');
+        const datasets = cities.map((city, idx) => ({
+            label: city,
+            data: cityProjections[city],
+            borderColor: colors[idx],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0.4,
+            pointRadius: 4
+        }));
+        
+        new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: allMonths,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Generate City Cards
+        const cityCardsContainer = document.getElementById('cityCards');
+        cities.forEach(city => {
+            const projection = cityProjections[city];
+            const octValue = projection[0];
+            const novValue = projection[1];
+            const decValue = projection[2];
+            const janValue = projection[3];
+            const mayValue = projection[7];
+            
+            // Calculate city-specific month-on-month growth rates
+            const octNovGrowth = calculateGrowthRate(novValue, octValue);
+            const novDecGrowth = calculateGrowthRate(decValue, novValue);
+            const decJanGrowth = calculateGrowthRate(janValue, decValue);
+            const cityAvgGrowth = (octNovGrowth + novDecGrowth + decJanGrowth) / 3;
+            const janMayGrowth = Math.round(((mayValue - janValue) / janValue) * 100);
+            
+            const card = document.createElement('div');
+            card.className = 'city-card';
+            card.innerHTML = `
+                <h3>${city}</h3>
+                <div class="city-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">October</span>
+                        <span class="stat-value">${octValue.toLocaleString()}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">January (Actual)</span>
+                        <span class="stat-value">${janValue.toLocaleString()}</span>
+                    </div>
+                    <div class="stat-row highlight">
+                        <span class="stat-label">May (Projected)</span>
+                        <span class="stat-value projection">${mayValue.toLocaleString()}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Oct-Nov Growth</span>
+                        <span class="stat-value" style="color: ${octNovGrowth >= 0 ? '#28a745' : '#dc3545'};">${octNovGrowth >= 0 ? '+' : ''}${octNovGrowth.toFixed(1)}%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Nov-Dec Growth</span>
+                        <span class="stat-value" style="color: ${novDecGrowth >= 0 ? '#28a745' : '#dc3545'};">${novDecGrowth >= 0 ? '+' : ''}${novDecGrowth.toFixed(1)}%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Dec-Jan Growth</span>
+                        <span class="stat-value" style="color: ${decJanGrowth >= 0 ? '#28a745' : '#dc3545'};">${decJanGrowth >= 0 ? '+' : ''}${decJanGrowth.toFixed(1)}%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Avg Monthly Growth</span>
+                        <span class="stat-value" style="color: #667eea; font-weight: bold;">${cityAvgGrowth.toFixed(1)}%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Total Workable (Oct-May)</span>
+                        <span class="stat-value">${projection.reduce((a, b) => a + b, 0).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+            cityCardsContainer.appendChild(card);
+        });
+    </script>
+</body>
+</html>
